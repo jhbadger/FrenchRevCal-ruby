@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
+# coding: utf-8
 
 require 'optparse'
+require 'ostruct'
 require 'date'
 
 
@@ -412,9 +414,33 @@ class RevDate
   end
 end
 
-date = Date.parse(ARGV.pop) if ARGV.size > 0
+opt = OpenStruct.new
+opt.europe = false
 
-date = Date.today if date.nil?
+o = OptionParser.new
+o.banner << " [date]"
+o.on("-e", "--europe", "Use European DD/MM/YYYY dates (false)") {opt.european = true}
+begin
+  o.parse!
+rescue
+  STDERR << $!.message << "\n"
+  STDERR << o
+  exit(1)
+end
+if (ARGV.size > 1)
+  STDERR << o
+  exit(1)
+end
+
+date = Date.today
+if (ARGV.size > 0)
+  date = ARGV.pop
+  if (!opt.european && RUBY_VERSION.to_f >= 1.9 && date =~/([0-9]*)\/([0-9]*)\/([0-9]*)/)
+    date = $3 + "-" + $1 + "-" + $2
+  end
+  date = Date.parse(date)
+end
+
 date = RevDate.fromGregorian(date)
 
 print date.to_s + "\n"
