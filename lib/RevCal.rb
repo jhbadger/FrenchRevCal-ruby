@@ -1,18 +1,13 @@
-#!/usr/bin/env ruby
 # coding: utf-8
-
-require 'optparse'
-require 'ostruct'
-require 'date'
-
-
 class RevDate
   attr_reader :year, :month, :day
+  # create new RevDate with given year, month, day (numeric, using revolutionary year, month, day)
   def initialize(year, month, day)
     @year = year
     @month = month
     @day = day
   end
+  # create human readable string of date
   def to_s
     names = ["Vendémiaire", "Brumaire", "Frimaire", "Nivôse", "Pluviôse",
         "Ventôse", "Germinal", "Floréal", "Prairial", "Messidor",
@@ -20,6 +15,7 @@ class RevDate
     s = ""
     s += @day.to_s + " " + names[@month - 1] + " " + @year.to_s
   end
+  # return number of days in given revolutionary year
   def RevDate.length(year)
     if (year == 3 || year == 7 || year == 11 || year == 15 || year == 20)
       return 366
@@ -29,6 +25,7 @@ class RevDate
       return 365
     end
   end
+  # convert the despised reactionary date of the ancien regime to our glorious rational format
   def RevDate.fromGregorian(d)
     start = Date.new(1792,9,22)
     days = d - start
@@ -42,6 +39,7 @@ class RevDate
     day = (1 + (days % 30)).to_i
     return RevDate.new(year, month, day)
   end
+  #return the date's symbol (associated plant, animal, or tool)
   def daySymbol
     dayNum = 30*(@month - 1) + (@day - 1)
     symbols = ["Raisin (Grape)",
@@ -414,34 +412,3 @@ class RevDate
   end
 end
 
-opt = OpenStruct.new
-opt.europe = false
-
-o = OptionParser.new
-o.banner << " [date]"
-o.on("-e", "--europe", "Use European DD/MM/YYYY dates (false)") {opt.european = true}
-begin
-  o.parse!
-rescue
-  STDERR << $!.message << "\n"
-  STDERR << o
-  exit(1)
-end
-if (ARGV.size > 1)
-  STDERR << o
-  exit(1)
-end
-
-date = Date.today
-if (ARGV.size > 0)
-  date = ARGV.pop
-  if (!opt.european && RUBY_VERSION.to_f >= 1.9 && date =~/([0-9]*)\/([0-9]*)\/([0-9]*)/)
-    date = $3 + "-" + $1 + "-" + $2
-  end
-  date = Date.parse(date)
-end
-
-date = RevDate.fromGregorian(date)
-
-print date.to_s + "\n"
-print "Today is dedicated to " + date.daySymbol + "\n"
